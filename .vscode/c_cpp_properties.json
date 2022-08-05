@@ -1,0 +1,115 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "g:/My Drive/RAT software/220220-123648-mkrzero/include",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/src",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_PMIC_lib",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_lowpower_lib",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_serialFlash_lib",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_microSD_lib",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/RTCCounter-master/src",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_NDP_utils/src",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/PMIC_SGM41512/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/Wire",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/SerialFlash",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/SD/src",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/SdFat/src",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/NDP/src",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/syntiant_ilib",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SPI",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/cores/arduino/api/deprecated",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/cores/arduino/api/deprecated-avr-comp",
+                "C:/Users/binra/.platformio/packages/framework-cmsis/CMSIS/Include",
+                "C:/Users/binra/.platformio/packages/framework-cmsis-atmel/CMSIS/Device/ATMEL",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/cores/arduino",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/variants/mkrzero",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/AudioUSB/src",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/HID-Project/src",
+                "g:/My Drive/RAT software/220220-123648-mkrzero/lib/avdweb_SAMDtimer",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/HID",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/I2S/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SAMD_AnalogCorrection/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SAMD_BootloaderUpdater/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SBU/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SDU/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SFU/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SNU/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SSU/src",
+                "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/USBHost/src",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/include",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/src",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_PMIC_lib",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_lowpower_lib",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_serialFlash_lib",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_microSD_lib",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/RTCCounter-master/src",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/TinyML_NDP_utils/src",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/PMIC_SGM41512/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/Wire",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/SerialFlash",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/SD/src",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/SdFat/src",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/NDP/src",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/syntiant_ilib",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SPI",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/cores/arduino/api/deprecated",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/cores/arduino/api/deprecated-avr-comp",
+                    "C:/Users/binra/.platformio/packages/framework-cmsis/CMSIS/Include",
+                    "C:/Users/binra/.platformio/packages/framework-cmsis-atmel/CMSIS/Device/ATMEL",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/cores/arduino",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/variants/mkrzero",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/AudioUSB/src",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/HID-Project/src",
+                    "g:/My Drive/RAT software/220220-123648-mkrzero/lib/avdweb_SAMDtimer",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/HID",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/I2S/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SAMD_AnalogCorrection/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SAMD_BootloaderUpdater/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SBU/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SDU/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SFU/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SNU/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/SSU/src",
+                    "C:/Users/binra/.platformio/packages/framework-arduino-samd/libraries/USBHost/src",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=60103",
+                "ARDUINO_SAMD_MKRZERO",
+                "__SAMD21G18A__",
+                "USE_ARDUINO_MKR_PIN_LAYOUT",
+                "ARDUINO=10805",
+                "F_CPU=48000000L",
+                "USBCON",
+                "USB_VID=0x2341",
+                "USB_PID=0x804F",
+                "USB_PRODUCT=\"Arduino MKRZERO\"",
+                "USB_MANUFACTURER=\"Arduino\"",
+                "ARDUINO_ARCH_SAMD",
+                ""
+            ],
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "compilerPath": "C:/Users/binra/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
+            "compilerArgs": [
+                "-mcpu=cortex-m0plus",
+                "-mthumb",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}

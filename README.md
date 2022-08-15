@@ -32,7 +32,7 @@ Item|Manufacturer|Example listing
 ESP32 CAM |AI Thinker
 u.FL to SMA cable|
 SMA 2.4GHz antenna|
-OV2640 wide andgle on a 75mm|
+OV2640 wide andgle on a 75mm| https://tinyurl.com/75mmOV2640
 TinyML |Syntiant | https://tinyurl.com/TinyMLDigikey
 18650 Li-ion Cell|
 186050 holder|

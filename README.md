@@ -33,7 +33,7 @@ ESP32 CAM |AI Thinker
 u.FL to SMA cable|
 SMA 2.4GHz antenna|
 OV2640 wide andgle on a 75mm|
-TinyML |Syntiant
+TinyML |Syntiant | https://tinyurl.com/TinyMLDigikey
 18650 Li-ion Cell|
 186050 holder|
 1mm JST 2 pin connector|

@@ -15,6 +15,32 @@ IO0 (Green)|GND (Black)
 
 5V and IO0 are used for programming. 3V3 is used in the backpack and takes power from the 3V3 test pad on the TinyML.
 
+Battery is an 18650 in a holder. A smaller cell would make everything smaller and lighter, this is what was to hand. Battery connector is an Amass XT30.
+
+Camera is an OV2640 wide andgle on a 75mm flexi.
+
+ESP32 code: https://github.com/binraker/RAT-ESP32
+
+CAD for case: https://gallery.autodesk.com/projects/169803/camerawifiai-platform
+
+The next step is to gather some data and train the ML modle. The TinyML will then generate a message when it detects something in the accelerometer data-stream that looks like an action we have labelled
+# Building one:
+Bits that are needed:
+
+Item|Manufacturer|Example listing
+---|---|---
+ESP32 CAM |AI Thinker
+u.FL to SMA cable|
+SMA 2.4GHz antenna|
+OV2640 wide andgle on a 75mm|
+TinyML |Syntiant
+18650 Li-ion Cell|
+186050 holder|
+1mm JST 2 pin connector|
+XT30 connector pair| Amass
+2x3 DuPont connecotr pair and pins |DuPont
+USB to Serial adaptor (for ESP32 programming) |
+
 Images of the hardware
 ![image1](media/20220806_203641.jpg)
 
@@ -31,13 +57,3 @@ Images of the hardware
 ![image1](media/20220806_204347.jpg)
 
 ![image1](media/20220806_204401.jpg)
-
-Battery is an 18650 in a holder. A smaller cell would make everything smaller and lighter, this is what was to hand. Battery connector is an Amass XT30.
-
-Camera is an OV2640 wide andgle on a 75mm flexi.
-
-ESP32 code: https://github.com/binraker/RAT-ESP32
-
-CAD for case: https://gallery.autodesk.com/projects/169803/camerawifiai-platform
-
-The next step is to gather some data and train the ML modle. The TinyML will then generate a message when it detects something in the accelerometer data-stream that looks like an action we have labelled.

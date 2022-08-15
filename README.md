@@ -31,7 +31,7 @@ Item|Manufacturer|Example listing
 ---|---|---
 ESP32 CAM |AI Thinker
 u.FL to SMA cable|
-SMA 2.4GHz antenna| | [Can get the preceding in a kit](https://tinyurl.com/RatPackKit)
+SMA 2.4GHz antenna| | [Can get the preceding in a kit]([https://tinyurl.com/RatPackKit](https://www.amazon.com/Aideepen-Bluetooth-Camera-Dual-Band-Antenna/dp/B08GKLWCB7/ref=sr_1_9?crid=8T8813N2QFHB&keywords=esp32%2Bcam&qid=1660421773&sprefix=esp32cam%2Caps%2C139&sr=8-9&th=1))
 OV2640 wide   on a 75mm| | https://tinyurl.com/75mmOV2640
 TinyML |Syntiant | https://tinyurl.com/TinyMLDigikey
 18650 Li-ion Cell|

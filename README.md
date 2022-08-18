@@ -38,7 +38,7 @@ TinyML |Syntiant | https://tinyurl.com/TinyMLDigikey
 186050 holder|
 1mm JST 2 pin connector|
 XT30 connector pair| Amass
-2x3 DuPont connecotr pair and pins |DuPont | https://tinyurl.com/2by3connector
+2x3 DuPont connector pair and pins |DuPont | https://tinyurl.com/2by3connector
 USB to Serial adaptor (for ESP32 programming) | SparkFun | https://tinyurl.com/serialbreakout
 
 Images of the hardware

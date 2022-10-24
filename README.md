@@ -23,7 +23,11 @@ ESP32 code: https://github.com/binraker/RAT-ESP32
 
 CAD for case: https://gallery.autodesk.com/projects/169803/camerawifiai-platform
 
+To get the data from the sensor we need to load a model into the AI processor. to do this simple coppy the file sensor_data_collection_model.bin from the sensor_data_collection_model folder onto the SD card that you put into the tinyML board and it will read it on power up.
+
 The next step is to gather some data and train the ML modle. The TinyML will then generate a message when it detects something in the accelerometer data-stream that looks like an action we have labelled
+
+
 # Building one:
 Bits that are needed:
 

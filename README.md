@@ -61,3 +61,20 @@ Images of the hardware
 ![image1](media/20220806_204347.jpg)
 
 ![image1](media/20220806_204401.jpg)
+
+# New updates
+
+- The Syntiant board and ESP32CAM are now synced. The ESP32CAM fetches the time and gives it to the Syntiant board which then starts the RTC. If no time is found, there is a variable with a manually defined time variable `manual_set_start_time` which the Syntiant board will start counting from.
+- The CSV files created by the Syntiant board now look like the example below. They are now more understandable and also Edge Impulse CSV "compliant"
+
+| timestamp |   accX    |   accY    |   accZ    |   gyrX    |   gyrY    |   gyrZ |
+| --------  | --------- | --------- | --------- | --------- | --------- | ------ |
+| 0	        |  -8925	|   767	    |   -3749	|   8957	|   -2989	|   19737|
+|   115	    |   -8588	|   387	    |   -3654	|   8680	|   -3118	|   19802|
+|   115	    |   -8036	|   -478	|   -4258	|   8326	|   -3174	|   19837|
+
+- Once the Syntiant board starts saving IMU data, it communicates to the ESP32CAM and gives it a file name. The ESP32CAM then saves the AVI file using this file name with the timestamp (this is yet to be implemented!). There is a config file, in the Syntiant's SD card, which keeps the count of how many files have been saved and this is used when creating new files. The files are now saved in the format below. 
+```
+  sensorData_1_2023_11_10_16_56_00
+  that is, SensorData, file count(epoch), Year, Month, Date, Hr, Min, Seconds
+```

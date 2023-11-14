@@ -30,6 +30,12 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+/*
+  Sensor data IMU files are named like this:
+  sensorData_1_2023_11_10_16_56_00
+  that is: SensorData, file count(epoch), Year, Month, Date, Hr, Min, Seconds
+*/
+
 #include <NDP.h>
 #include <NDP_utils.h>
 #include <Arduino.h>
@@ -40,9 +46,11 @@
 #include "NDP_init.h"
 #include "SAMD21_lowpower.h"
 #include "PMIC_init.h"
-#include <RTCCounter.h>
 #include <time.h>
+#include <RTCZero.h>
+#include "config.h"
 
+RTCZero rtc; // create an rtc object
 
 #define DSP_CONFIG_TANKADDR 0x4000c0b0
 #define DSP_CONFIG_TANK 0x4000c0a8
@@ -53,89 +61,256 @@ int currentClassifierCount0 = 0;                            // individual counte
 int currentClassifierCount1 = 0;
 int match = 0;                                                // This variable indicates which class has matched
 
+String manual_set_start_time = "2023:01:01:00:00:00"; // variable to store time when the ESP32 CAM time message is not okay
+//                              YY:Month:Date:Hr:Min:Seconds
+
+String received_timestamp_from_ESP32CAM = ""; // stores the message received via Serial2
+String current_time = ""; // variable to store time value received from the ESP32 CAM (e.g "[Browser]: 2023:11:09:02:10:48")
+int current_year, current_month, current_day, current_hour, current_minute, current_second; // variables to store time values
+void set_time_values(String correct_current_time); // function to parse current_time[19] and extract the individual time data
+
+String current_file_save_timestamp = ""; // stores the time when IMU data collection has started
+int latest_saved_SensorData_file_number = 0; //variable to store the latest saved file count (epoch)
+bool successfull_read_latest_saved_SensorData_file_number = false; // controls whether the IMU data collection can be executed
+
 void setup(void) {
-  SAMD21_init(0);                                          // Setting up SAMD21 
-  NDP_init("sensor_data_collection_model.bin",1);                                             // Setting up NDP, filename and Transducer type microphone=0, Sensor=1
-  tankAddress = indirectRead(DSP_CONFIG_TANKADDR);        // The value stored in the DSP_CONFIG_TANKADDR has the starting address
-  tankSize = indirectRead(DSP_CONFIG_TANK) >> 4;          // The tankSize is stored in the location DSP_CONFIG_TANK
-  Serial.print(" Tank address and size   ");
+  SAMD21_init(0); // Setting up the SAMD21
+  
+  turnON_GreenLED();
+
+  NDP_init("sensor_data_collection_model.bin",1);     // Setting up NDP, filename and Transducer type microphone=0, Sensor=1
+  tankAddress = indirectRead(DSP_CONFIG_TANKADDR);    // The value stored in the DSP_CONFIG_TANKADDR has the starting address
+  tankSize = indirectRead(DSP_CONFIG_TANK) >> 4;       // The tankSize is stored in the location DSP_CONFIG_TANK
+  Serial.print("Tank address and size : ");
   Serial.print(tankAddress, HEX);
-  Serial.print(" ,");
+  Serial.print(" , ");
   Serial.println(tankSize);
-  rtcCounter.begin();
-}
-int filecounter = 0;
 
-void printDateTime()
-{
-  // Get time as an epoch value and convert to tm struct
-  time_t epoch = rtcCounter.getEpoch();
-  struct tm* t = gmtime(&epoch);
-
-  // Format and print the output
-  char buffer[32];
-  snprintf(buffer, sizeof(buffer), "%02d.%02d.%02d %02d:%02d:%02d", t->tm_year - 100, 
-      t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
-
-  Serial.println(buffer);
-}
-
-void setDateTime(uint16_t year, uint8_t month, uint8_t day, 
-  uint8_t hour, uint8_t minute, uint8_t second)
-{
-  // Use the tm struct to convert the parameters to and from an epoch value
-  struct tm tm;
-
-  tm.tm_isdst = -1;
-  tm.tm_yday = 0;
-  tm.tm_wday = 0;
-  tm.tm_year = year - 1900;
-  tm.tm_mon = month - 1;
-  tm.tm_mday = day;
-  tm.tm_hour = hour;
-  tm.tm_min = minute;
-  tm.tm_sec = second;
-
-  rtcCounter.setEpoch(mktime(&tm));
-}
-
-
-void loop() {
-  digitalRead(SD_CARD_SENSE) ? Serial.println("card in") : Serial.println("card out");
-  printDateTime();
-  if ( (filecounter % 2) == 0){
-    digitalWrite(LED_BLUE,LOW);
-    digitalWrite(LED_GREEN,HIGH);
+  /* ***  First thing, set the time *** */
+  while(!Serial2.available()){
+    // wait until the ESP32 CAM time data is available
   }
-  else{
-    digitalWrite(LED_BLUE,HIGH);
-    digitalWrite(LED_GREEN,LOW);
-  }
-  //delay(23); //24ms is between samples, allowing 1ms for rest of the operations
-  saveLongSensorData(6, 10, filecounter, tankAddress, tankSize);
-  // Serial2.print("l");
-  // delay(10);
-  // Serial.println(Serial2.available());
-  // Serial.println(Serial2.read());
-  //Serial2.print("loop\n");
+
   if (Serial2.available())
   {
-    while (Serial2.available() && Serial2.peek() != '$')
-    {
-      //Serial.print((char)Serial2.read());
-      Serial2.read();
-    }
-    if (Serial2.available() >= 22)
-    {
-      String timeSt = Serial2.readString();
-      Serial.print("Time recieved: ");
-      Serial.println(timeSt);
-      setDateTime(timeSt.substring(2,6).toInt(), timeSt.substring(7,9).toInt(), timeSt.substring(10,12).toInt(), timeSt.substring(13,15).toInt(), timeSt.substring(16,18).toInt(), timeSt.substring(19,21).toInt());
+    received_timestamp_from_ESP32CAM = Serial2.readString();
+  }
+  //String received_timestamp_from_ESP32CAM = Serial2.readStringUntil('\n');
+  Serial.print("ESP32 CAM message = ");
+  Serial.println(received_timestamp_from_ESP32CAM);
+
+  // Check if the message starts with "[NTP]:" or "[Browser]:"
+  // e.g [NTP]:2023:11:09:14:19:32
+  // e.g [Browser]:2023:11:09:14:19:32
+
+  char expectedNTPPrefix[] = "[NTP]:";
+  char expectedBrowserPrefix[] = "[Browser]:";
+  if (received_timestamp_from_ESP32CAM.startsWith(expectedNTPPrefix)) {
+    //Serial.println("ESP32CAM message starts with [NTP]: ");
+    // Remove the first 6 characters
+    current_time = received_timestamp_from_ESP32CAM.substring(6);
+    // parse the time string and extract the seperate times
+    set_time_values(current_time);
+  } 
+  else if (received_timestamp_from_ESP32CAM.startsWith(expectedBrowserPrefix)) {
+    //Serial.println("ESP32CAM message starts with [Browser]:");
+    // Remove the first 11 characters
+    current_time = received_timestamp_from_ESP32CAM.substring(10);
+    // parse the time string and extract the seperate times
+    set_time_values(current_time);
+  } 
+  else {
+    //Serial.println("ESP32CAM message does not start with '[NTP]: ' or '[Browser]:' ");
+    
+    // start timer using the manually defined time
+    // in future we can fetch this time from an SD card's file name/content
+    current_time = manual_set_start_time;
+    set_time_values(current_time);
+  }
+
+  Serial.print("current_time = ");
+  Serial.println(current_time);
+  //prints something like : current_time = 2023:11:09:02:10:48
+
+  rtc.begin(); // initialize RTC
+
+  // Set the time
+  rtc.setHours(current_hour);
+  rtc.setMinutes(current_minute);
+  rtc.setSeconds(current_second);
+
+  // Set the date
+  rtc.setDay(current_day);
+  rtc.setMonth(current_month);
+  int int_two_digit_year = String(current_year).substring(2, 4).toInt();
+  rtc.setYear(int_two_digit_year);
+  /* *** */
+  
+  Serial.println("- - - - - - - - - - - - - - - -");
+}
+
+void loop() {
+ 
+  digitalRead(SD_CARD_SENSE) ? Serial.println("SD card in") : Serial.println("SD card out!");
+
+  print_RTC();
+
+  // save IMU data
+  save_IMU_data();
+
+  delay(1500);
+}
+
+/* *** User functions *** */
+
+void set_time_values(String correct_current_time){
+  
+  String current_time_to_parse = correct_current_time;
+  // e.g 2023:11:09:12:06:13
+  current_year = current_time_to_parse.substring(0, 4).toInt();
+  current_month = current_time_to_parse.substring(5, 7).toInt();
+  current_day = current_time_to_parse.substring(8, 10).toInt();
+  current_hour = current_time_to_parse.substring(11, 13).toInt();
+  current_minute = current_time_to_parse.substring(14, 16).toInt();
+  current_second = current_time_to_parse.substring(17, 19).toInt();
+  
+  Serial.println("Extracted time values.");
+  Serial.print("Year: ");
+  Serial.println(current_year);
+  Serial.print("Month: ");
+  Serial.println(current_month);
+  Serial.print("Day: ");
+  Serial.println(current_day);
+  Serial.print("Hour: ");
+  Serial.println(current_hour);
+  Serial.print("Minute: ");
+  Serial.println(current_minute);
+  Serial.print("Second: ");
+  Serial.println(current_second);
+  Serial.println();
+}
+
+void print2digits(int number) {
+  if (number < 10) {
+    Serial.print("0"); // print a 0 before if the number is < than 10
+  }
+  Serial.print(number);
+}
+
+void print_time() {
+  Serial.print("Time: ");
+
+  // ...and time
+  print2digits(rtc.getHours());
+  Serial.print(":");
+  print2digits(rtc.getMinutes());
+  Serial.print(":");
+  print2digits(rtc.getSeconds());
+}
+
+void print_date() {
+  Serial.print("\tDate: ");
+
+  // Print date...
+  print2digits(rtc.getDay());
+  Serial.print("/");
+  print2digits(rtc.getMonth());
+  Serial.print("/");
+  print2digits(rtc.getYear());
+  Serial.print(" ");
+
+  Serial.println();
+}
+
+void print_RTC() {
+  print_time();
+  print_date();
+}
+
+String get_current_time_as_string(){
+  String rtc_current_time = String(current_year) + "_" + String(rtc.getMonth()) + "_" + String(rtc.getDay()) + "_";
+  rtc_current_time += String(rtc.getHours()) + "_" + String(rtc.getMinutes()) + "_" + String(rtc.getSeconds());
+
+  // returns, for example, 2023_11_10_18_9_16
+  return rtc_current_time;
+}
+
+int get_latest_saved_SensorData_file_number(){
+
+  if (SD.begin(SDCARD_SS_PIN, SPI_HALF_SPEED)) {   
+
+    // open the file for reading:
+    File latest_saved_SensorData_file = SD.open(LATEST_SAVED_SENSORDATA_FILE_NUMBER_PATH, FILE_READ);
+    if (latest_saved_SensorData_file) {
+
+      String file_content = "";
+      Serial.print("Latest saved SensorData file number : ");
+
+      // read from the file until there's nothing else in it:
+      while (latest_saved_SensorData_file.available()) {
+        char currentChar = latest_saved_SensorData_file.read(); 
+
+        // Break if a fullstop is encountered
+        if (currentChar == '.') {
+          break;
+        }
+
+        file_content += currentChar;
+      }
+      latest_saved_SensorData_file.close(); // close the file
+
+      int int_latest_saved_fileNumber = file_content.toInt();
+      Serial.println(int_latest_saved_fileNumber);
+        
+      successfull_read_latest_saved_SensorData_file_number = true;
+      return int_latest_saved_fileNumber;
+    } 
+    else {
+      // if the file didn't open
+      successfull_read_latest_saved_SensorData_file_number = false;
+      Serial.print("Error opening ");
+      Serial.println(LATEST_SAVED_SENSORDATA_FILE_NUMBER_PATH);
     }
   }
-  Serial2.print("file written no ");
-  Serial2.print(filecounter);
-  Serial2.print("\n");
+}
+
+void save_IMU_data(){
+  turnON_BlueLED(); // turn on Blue LED to indicate data collection
+  current_file_save_timestamp = get_current_time_as_string();
+  //Serial.print("Current file's save timestamp : ");
+  //Serial.println(current_file_save_timestamp);
+
+  // get the latest saved SensorData file number on the SD card
+  latest_saved_SensorData_file_number = get_latest_saved_SensorData_file_number();
   
-  filecounter++;
+  //delay(23); //24ms is between samples, allowing 1ms for rest of the operations
+  if (successfull_read_latest_saved_SensorData_file_number){
+    // send a message to the ESP32CAM on Serial2 to record a video, give the file name
+    // CAUTION! Maintain same format between Data, i.e, no space after ':'
+    String send_to_ESP32CAM_Data_FileName = "[Data]:";
+    send_to_ESP32CAM_Data_FileName += "_" + String(latest_saved_SensorData_file_number + 1) + "_" + current_file_save_timestamp;
+    Serial2.println(send_to_ESP32CAM_Data_FileName);
+    // sends something like : [Data]:_15_2023_11_12_14_24_11
+
+    // print what has been sent via Serial
+    Serial.print("Message sent to ESP32CAM : ");
+    Serial.println(send_to_ESP32CAM_Data_FileName);
+
+    saveLongSensorData(6, 10, latest_saved_SensorData_file_number + 1, current_file_save_timestamp, tankAddress, tankSize);
+  }
+  Serial.println("- - - - - - - - - - - - - - - -");
+  successfull_read_latest_saved_SensorData_file_number = false; // reset variable
+  turnON_GreenLED();
+}
+
+/* *** Onboard RGB LED control functions *** */
+void turnON_BlueLED(){
+  digitalWrite(LED_BLUE, HIGH);
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_GREEN, LOW);
+}
+void turnON_GreenLED(){
+  digitalWrite(LED_BLUE, LOW);
+  digitalWrite(LED_RED, LOW);
+  digitalWrite(LED_GREEN, HIGH);
 }

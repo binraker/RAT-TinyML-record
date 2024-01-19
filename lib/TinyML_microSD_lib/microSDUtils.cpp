@@ -186,20 +186,20 @@ void saveAudioData(uint8_t classifier, int extrStides, int currentFile, uint32_t
 
 /*
   Sensor data IMU files are named like this:
-  sensorData_1_2023_11_10_16_56_00
-  SensorData, file count(epoch), Year, Month, Date, Hr, Min, Seconds
+  IMUData_1_2023_11_10_16_56_00
+  IMUData, file count(epoch), Year, Month, Date, Hr, Min, Seconds
 */
-void saveLongSensorData(int sensorAxes, int dataSavePeriodInSeconds, int currentFile, String currentFile_timestamp, uint32_t tankAddress, uint32_t tankSize){    // routine for saving data 
+void saveLongIMUData(int sensorAxes, int dataSavePeriodInSeconds, int currentFile, String currentFile_timestamp, uint32_t tankAddress, uint32_t tankSize){    // routine for saving data 
    
    // create the filename using the file count and timestamp
-   String dataFileName = "SensorData_" + String(currentFile) + "_" + currentFile_timestamp + ".csv";
+   String dataFileName = "IMUData_" + String(currentFile) + "_" + currentFile_timestamp + ".csv";
 
    if (SD.begin(SDCARD_SS_PIN, SPI_HALF_SPEED)) {                           // Check if SD card inserted
       myFile = SD.open(dataFileName, FILE_WRITE);
       myFile.rewind(); // go to start of file
 
       // write the first row which has the CSV heading
-      myFile.print(SENSORDATA_CSVFILE_FIRST_ROW);
+      myFile.print(IMUData_CSVFILE_FIRST_ROW);
       myFile.println("");
 
       Serial.print("SD file opened : ");
@@ -325,29 +325,29 @@ void saveLongSensorData(int sensorAxes, int dataSavePeriodInSeconds, int current
 
    // finally, save the current file number count
    if (SD.begin(SDCARD_SS_PIN, SPI_HALF_SPEED)) {  
-      File latest_saved_SensorData_file = SD.open(LATEST_SAVED_SENSORDATA_FILE_NUMBER_PATH, FILE_WRITE);
-      latest_saved_SensorData_file.rewind(); // go to start of file
+      File latest_saved_IMUData_file = SD.open(LATEST_SAVED_IMUData_FILE_NUMBER_PATH, FILE_WRITE);
+      latest_saved_IMUData_file.rewind(); // go to start of file
       // if the file opened okay, write to it:
-      if (latest_saved_SensorData_file) {
+      if (latest_saved_IMUData_file) {
          Serial.print("Writing a ");
          Serial.print(currentFile);
          Serial.print(" to ");
-         Serial.print(LATEST_SAVED_SENSORDATA_FILE_NUMBER_PATH);
+         Serial.print(LATEST_SAVED_IMUData_FILE_NUMBER_PATH);
          Serial.print(" ...");
 
          String file_content = String(currentFile) + "."; //make sure to put a fullstop
-         if (latest_saved_SensorData_file.print(file_content)) {
+         if (latest_saved_IMUData_file.print(file_content)) {
             Serial.println("Done!");
          } else {
             Serial.println("Failed!");
          }
          // close the file:
-         latest_saved_SensorData_file.close();
+         latest_saved_IMUData_file.close();
       }
       else {
          // if the file didn't open
          Serial.print("Error opening ");
-         Serial.println(LATEST_SAVED_SENSORDATA_FILE_NUMBER_PATH);
+         Serial.println(LATEST_SAVED_IMUData_FILE_NUMBER_PATH);
 
          return;
       }

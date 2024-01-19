@@ -87,7 +87,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60111",
+                "PLATFORMIO=60113",
                 "ARDUINO_SAMD_MKRZERO",
                 "__SAMD21G18A__",
                 "USE_ARDUINO_MKR_PIN_LAYOUT",

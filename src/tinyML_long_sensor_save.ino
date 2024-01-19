@@ -32,8 +32,8 @@
 
 /*
   Sensor data IMU files are named like this:
-  sensorData_1_2023_11_10_16_56_00
-  that is: SensorData, file count(epoch), Year, Month, Date, Hr, Min, Seconds
+  IMUData_1_2023_11_10_16_56_00
+  that is: IMUData, file count(epoch), Year, Month, Date, Hr, Min, Seconds
 */
 
 #include <NDP.h>
@@ -70,8 +70,8 @@ int current_year, current_month, current_day, current_hour, current_minute, curr
 void set_time_values(String correct_current_time); // function to parse current_time[19] and extract the individual time data
 
 String current_file_save_timestamp = ""; // stores the time when IMU data collection has started
-int latest_saved_SensorData_file_number = 0; //variable to store the latest saved file count (epoch)
-bool successfull_read_latest_saved_SensorData_file_number = false; // controls whether the IMU data collection can be executed
+int latest_saved_IMUData_file_number = 0; //variable to store the latest saved file count (epoch)
+bool successfull_read_latest_saved_IMUData_file_number = false; // controls whether the IMU data collection can be executed
 
 void setup(void) {
   SAMD21_init(0); // Setting up the SAMD21
@@ -158,7 +158,7 @@ void loop() {
   // save IMU data
   save_IMU_data();
 
-  delay(1500);
+  delay(2000);
 }
 
 /* *** User functions *** */
@@ -235,20 +235,20 @@ String get_current_time_as_string(){
   return rtc_current_time;
 }
 
-int get_latest_saved_SensorData_file_number(){
+int get_latest_saved_IMUData_file_number(){
 
   if (SD.begin(SDCARD_SS_PIN, SPI_HALF_SPEED)) {   
 
     // open the file for reading:
-    File latest_saved_SensorData_file = SD.open(LATEST_SAVED_SENSORDATA_FILE_NUMBER_PATH, FILE_READ);
-    if (latest_saved_SensorData_file) {
+    File latest_saved_IMUData_file = SD.open(LATEST_SAVED_IMUData_FILE_NUMBER_PATH, FILE_READ);
+    if (latest_saved_IMUData_file) {
 
       String file_content = "";
-      Serial.print("Latest saved SensorData file number : ");
+      Serial.print("Latest saved IMUData file number : ");
 
       // read from the file until there's nothing else in it:
-      while (latest_saved_SensorData_file.available()) {
-        char currentChar = latest_saved_SensorData_file.read(); 
+      while (latest_saved_IMUData_file.available()) {
+        char currentChar = latest_saved_IMUData_file.read(); 
 
         // Break if a fullstop is encountered
         if (currentChar == '.') {
@@ -257,19 +257,19 @@ int get_latest_saved_SensorData_file_number(){
 
         file_content += currentChar;
       }
-      latest_saved_SensorData_file.close(); // close the file
+      latest_saved_IMUData_file.close(); // close the file
 
       int int_latest_saved_fileNumber = file_content.toInt();
       Serial.println(int_latest_saved_fileNumber);
         
-      successfull_read_latest_saved_SensorData_file_number = true;
+      successfull_read_latest_saved_IMUData_file_number = true;
       return int_latest_saved_fileNumber;
     } 
     else {
       // if the file didn't open
-      successfull_read_latest_saved_SensorData_file_number = false;
+      successfull_read_latest_saved_IMUData_file_number = false;
       Serial.print("Error opening ");
-      Serial.println(LATEST_SAVED_SENSORDATA_FILE_NUMBER_PATH);
+      Serial.println(LATEST_SAVED_IMUData_FILE_NUMBER_PATH);
     }
   }
 }
@@ -280,26 +280,28 @@ void save_IMU_data(){
   //Serial.print("Current file's save timestamp : ");
   //Serial.println(current_file_save_timestamp);
 
-  // get the latest saved SensorData file number on the SD card
-  latest_saved_SensorData_file_number = get_latest_saved_SensorData_file_number();
+  // get the latest saved IMUData file number on the SD card
+  latest_saved_IMUData_file_number = get_latest_saved_IMUData_file_number();
   
   //delay(23); //24ms is between samples, allowing 1ms for rest of the operations
-  if (successfull_read_latest_saved_SensorData_file_number){
+  if (successfull_read_latest_saved_IMUData_file_number){
     // send a message to the ESP32CAM on Serial2 to record a video, give the file name
-    // CAUTION! Maintain same format between Data, i.e, no space after ':'
-    String send_to_ESP32CAM_Data_FileName = "[Data]:";
-    send_to_ESP32CAM_Data_FileName += "_" + String(latest_saved_SensorData_file_number + 1) + "_" + current_file_save_timestamp;
+    // CAUTION! Maintain same format between [Video], i.e, no space after ':'
+    String send_to_ESP32CAM_Data_FileName = "[Video]:";
+    send_to_ESP32CAM_Data_FileName += "_" + String(latest_saved_IMUData_file_number + 1) + "_" + current_file_save_timestamp;
+    send_to_ESP32CAM_Data_FileName += ".avi";
     Serial2.println(send_to_ESP32CAM_Data_FileName);
-    // sends something like : [Data]:_15_2023_11_12_14_24_11
+    delay(500); // wait for the ESP32CAM to start recording
+    // sends something like : [Video]:_15_2023_11_12_14_24_11
 
     // print what has been sent via Serial
     Serial.print("Message sent to ESP32CAM : ");
     Serial.println(send_to_ESP32CAM_Data_FileName);
 
-    saveLongSensorData(6, 10, latest_saved_SensorData_file_number + 1, current_file_save_timestamp, tankAddress, tankSize);
+    saveLongIMUData(6, 10, latest_saved_IMUData_file_number + 1, current_file_save_timestamp, tankAddress, tankSize);
   }
   Serial.println("- - - - - - - - - - - - - - - -");
-  successfull_read_latest_saved_SensorData_file_number = false; // reset variable
+  successfull_read_latest_saved_IMUData_file_number = false; // reset variable
   turnON_GreenLED();
 }
 

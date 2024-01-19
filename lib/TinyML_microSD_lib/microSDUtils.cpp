@@ -32,7 +32,7 @@
 
 #include "NDP_loadModel.h"
 #include "microSDUtils.h"
-#include <RTCCounter.h>
+#include "../../src/config.h"
 
 #define strideSamples 384                                   // 24ms stride * 16K/s 
 
@@ -184,29 +184,32 @@ void saveAudioData(uint8_t classifier, int extrStides, int currentFile, uint32_t
     Serial.println(currentPointer);
 }
 
-void saveLongSensorData(int sensorAxes, int dataSavePeriodInSeconds, int currentFile, uint32_t tankAddress, uint32_t tankSize){    // routine for saving data 
-   Serial.println(" "); 
-   time_t epoch = rtcCounter.getEpoch();
-   struct tm* t = gmtime(&epoch);
-
-   // Format and print the output
-
-   int n = sprintf(dataFileName, "sensorData_%d___%02d_%02d_%02d__%02d_%02d_%02d.csv",currentFile, t->tm_year - 100, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+/*
+  Sensor data IMU files are named like this:
+  IMUData_1_2023_11_10_16_56_00
+  IMUData, file count(epoch), Year, Month, Date, Hr, Min, Seconds
+*/
+void saveLongIMUData(int sensorAxes, int dataSavePeriodInSeconds, int currentFile, String currentFile_timestamp, uint32_t tankAddress, uint32_t tankSize){    // routine for saving data 
    
+   // create the filename using the file count and timestamp
+   String dataFileName = "IMUData_" + String(currentFile) + "_" + currentFile_timestamp + ".csv";
 
    if (SD.begin(SDCARD_SS_PIN, SPI_HALF_SPEED)) {                           // Check if SD card inserted
       myFile = SD.open(dataFileName, FILE_WRITE);
-      myFile.remove(); // delete old file                   // Deleteting the file if already existed to avoid appending it
-      myFile = SD.open(dataFileName, FILE_WRITE);
       myFile.rewind(); // go to start of file
-      Serial.print("SD file opened ");
+
+      // write the first row which has the CSV heading
+      myFile.print(IMUData_CSVFILE_FIRST_ROW);
+      myFile.println("");
+
+      Serial.print("SD file opened : ");
       Serial.println(dataFileName);
    }
    else{
-      Serial.println("SD file not opened ");
+      Serial.println("SD file not opened!");
    }
-   int samplesSaved =dataSavePeriodInSeconds* 100 * sensorAxes;  // Sampling rate is fixed at 100Hz
-   int samplesFIFOMargin = 10 * sensorAxes; // Margin before wait or ternmination is executed                  
+   int samplesSaved = dataSavePeriodInSeconds* 100 * sensorAxes;  // Sampling rate is fixed at 100Hz
+   int samplesFIFOMargin = 10 * sensorAxes; // Margin before wait or termination is executed                  
  
    startingFWAddress = indirectRead(0x1fffc0c0);
    Serial.print(" Starting FW Address  ");
@@ -220,21 +223,44 @@ void saveLongSensorData(int sensorAxes, int dataSavePeriodInSeconds, int current
    int16_t sampleValue;
    int32_t startingPoint = (currentPointer - 10) ;// Saving data from before, *2 because 1 sample = 2 bytes
    if (startingPoint < 0){
-    startingPoint = (currentPointer - 10) + tankSize; //Due to circular buffer nature, the tarting point could be negative and should be adjusted
+    startingPoint = (currentPointer - 10) + tankSize; //Due to circular buffer nature, the starting point could be negative and should be adjusted
    }  
-   Serial.print("Starting point (adjusting for curcular buffer if needed) ");
+   Serial.print("Starting point (adjusting for circular buffer if needed) ");
    Serial.println(startingPoint);
+
+   uint32_t startTime = millis(); // Timestamp for the start of data collection
+   // each row is started after 3 consecutive for loops rounds. When a new row has started we first save the sampling milliseconds
+   int round_count = 0; // store timestamp values after 3 for loops
+
    int axesFormatingCounter = 0;
-   for (int i = 0; i < (samplesSaved*2); i += 4){             // *2 becuase there are two bytes, 4 is because the read is done for 4 bytes at a time
+
+   for (int i = 0; i < (samplesSaved*2); i += 4){             // *2 because there are two bytes, 4 is because the read is done for 4 bytes at a time
+      //Serial.print("i = ");
+      //Serial.println(i);
+      
       if (!digitalRead(SD_CARD_SENSE))
       {
-         Serial.println("no card");
-         delay(100);
+         Serial.println("No SD card found!");
+         //delay(100);
          return;
       }
+
+      // new rows start after saving lower 2 bytes & saving upper 2 bytes, three times
+      if(round_count == 0 ){
+         //Serial.println("[Starting a new CSV row..]");
+         // Add the timestamp of the sensor collection to the CSV file
+         uint32_t currentTime = millis() - startTime;
+         myFile.print(currentTime); // write the current time in the CSV row, first column
+         myFile.print(",");
+      }
+
       tankRead = indirectRead(tankAddress + (( startingPoint + i) % tankSize));
       sampleValue = tankRead & 0xffff;                        // Saving lower two bytes
       myFile.print(sampleValue);
+      
+      //Serial.println("[SAVING lower 2 bytes]:");
+      //Serial.println(sampleValue);
+
       if (axesFormatingCounter==(sensorAxes-1)){
          axesFormatingCounter = 0;
          myFile.println("");
@@ -245,6 +271,10 @@ void saveLongSensorData(int sensorAxes, int dataSavePeriodInSeconds, int current
       }
       sampleValue = (tankRead >> 16) & 0xffff;                // Saving upper two bytes
       myFile.print(sampleValue);
+
+      //Serial.println("[SAVING upper 2 bytes]:");
+      //Serial.println(sampleValue);
+
       if (axesFormatingCounter==(sensorAxes-1)){
          axesFormatingCounter = 0;
          myFile.println("");
@@ -269,12 +299,6 @@ void saveLongSensorData(int sensorAxes, int dataSavePeriodInSeconds, int current
          if (diff<samplesFIFOMargin){
             myFile.sync();
             delay(100); 
-            while (Serial2.available() && Serial2.peek() != '$')
-            {
-               //Serial.print((char)Serial2.read());
-               Serial2.read();
-            }
-         //Serial.println("waited");
          }
          if (diff> (tankSize-samplesFIFOMargin) ){
             Serial.println(" Warning terminating circular FIFO to be overwritten, margin left 0.1S");
@@ -286,13 +310,46 @@ void saveLongSensorData(int sensorAxes, int dataSavePeriodInSeconds, int current
             Serial.println( i / (20*samplesFIFOMargin));
          }
       }
-    }
+
+      round_count++;
+      if(round_count == 3 ) round_count = 0; // reset to 0, meaning a new row has started
+   }
+  
     myFile.close();
-    Serial.println("SD file Closed ");
+    //Serial.println("SD file Closed ");
     currentPointer = indirectRead(startingFWAddress);         // estimating delay during the data saving process, pointer difference / 2 * 24 = elapsed time in ms
     Serial.print("Current Pointer after savind data ");
     Serial.println(currentPointer);
          
    //Serial.println(millis());
-   Serial.println(" "); 
+
+   // finally, save the current file number count
+   if (SD.begin(SDCARD_SS_PIN, SPI_HALF_SPEED)) {  
+      File latest_saved_IMUData_file = SD.open(LATEST_SAVED_IMUData_FILE_NUMBER_PATH, FILE_WRITE);
+      latest_saved_IMUData_file.rewind(); // go to start of file
+      // if the file opened okay, write to it:
+      if (latest_saved_IMUData_file) {
+         Serial.print("Writing a ");
+         Serial.print(currentFile);
+         Serial.print(" to ");
+         Serial.print(LATEST_SAVED_IMUData_FILE_NUMBER_PATH);
+         Serial.print(" ...");
+
+         String file_content = String(currentFile) + "."; //make sure to put a fullstop
+         if (latest_saved_IMUData_file.print(file_content)) {
+            Serial.println("Done!");
+         } else {
+            Serial.println("Failed!");
+         }
+         // close the file:
+         latest_saved_IMUData_file.close();
+      }
+      else {
+         // if the file didn't open
+         Serial.print("Error opening ");
+         Serial.println(LATEST_SAVED_IMUData_FILE_NUMBER_PATH);
+
+         return;
+      }
+   }
 }

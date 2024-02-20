@@ -2,8 +2,6 @@
 
 # Function to detect SD Card mount point
 detect_sd_card() {
-  # This is a basic way to detect an SD card and might need adjustment
-  # based on your specific hardware configuration
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Typical mount points in Linux
     for mount in /media/$USER/* /run/media/$USER/*; do
@@ -22,7 +20,6 @@ detect_sd_card() {
     done
   elif [[ "$OSTYPE" == "msys"* ]]; then
     # Windows
-    # This will need to be adjusted based on how your system mounts SD cards
     for drive in /d/* /e/* /f/* /g/* /h/*; do
       if df -h | grep -q $drive; then
         echo $drive
@@ -73,12 +70,37 @@ fi
 
 # Install Dependencies
 echo "Installing dependencies"
-# Add dependency installation commands here
+# Install Arduino CLI
+curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+# Install ESP-IDF
+#if ubuntu or osx
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  brew install cmake ninja dfu-util
+  pip3 install --user -r https://raw.githubusercontent.com/espressif/esp-idf/master/requirements.txt
+
+# Install ESP-IDF if ubuntu or osx
+if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
+  mkdir -p ~/esp
+  cd ~/esp
+  git clone -b v5.2 --recursive https://github.com/espressif/esp-idf.git
+  cd ~/esp/esp-idf
+  ./install.sh esp32
+  . $HOME/esp/esp-idf/export.sh
+  alias get_idf='. $HOME/esp/esp-idf/export.sh'
+  cd ~/esp
+  echo "export IDF_PATH=~/esp/esp-idf" >> ~/.bashrc
+  cp -r $IDF_PATH/examples/get-started/hello_world .
+  cd ~/esp/hello_world
+  idf.py set-target esp32
+  
 
 # Clone Repositories
 echo "Cloning repositories"
-##git clone https://github.com/binraker/RAT-ESP32.git
-##git clone https://github.com/binraker/RAT-TinyML-record.git
+git clone https://github.com/binraker/RAT-ESP32.git
+git clone https://github.com/binraker/RAT-TinyML-record.git
 
 # Detect and Set Board Port
 board_port=$(detect_board_port)
@@ -98,6 +120,10 @@ echo "Compiling and flashing firmware for ESP32"
 # Setup ESP-IDF environment
 source $HOME/esp/esp-idf/export.sh
 idf.py -p $board_port flash
+
+# Configure ESP32 wifi credentials
+echo "User needs to manually configure the ESP32 wifi credentials"
+idf.py menuconfig
 
 # Detect and Set SD Card Path
 sd_card_path=$(detect_sd_card)

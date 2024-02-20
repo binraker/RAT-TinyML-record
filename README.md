@@ -29,35 +29,26 @@ To get the data from the sensor we need to load a model into the AI processor. t
 
 The next step is to gather some data and train the ML modle. The TinyML will then generate a message when it detects something in the accelerometer data-stream that looks like an action we have labelled
 
-## Installation Steps
-
-### Windows only:
-### Download the Executable
-The executable file for this project is automatically built using GitHub Actions whenever there's a push or pull request to the main branch. To download the latest version of the executable:
-
-Go to the Actions tab in the GitHub repository.
-Click on the latest successful workflow run.
-Under the Artifacts section, find the windows-executable artifact.
-Click on it to download a zip file containing the .exe file.
-
-### Running the Executable
-After downloading, extract the zip file to obtain the run_installer.exe file. Before running the executable, ensure that your system is connected to the necessary hardware, such as the ESP32, TinyML board, and an SD card reader.
-
-Steps to run the executable:
-
+## Assembly Steps
 Connect your ESP32 and TinyML board as described in the project documentation.
 Ensure the battery, camera, and other hardware components are correctly installed and connected.
 Insert the SD card into your SD card reader.
-Double-click on run_installer.exe to run the installer. The installer will perform various tasks, including detecting the SD card, setting up board ports, and copying necessary files.
-Follow any on-screen instructions or prompts to complete the installation process.
-Note: The executable is designed to run on Windows. If you are using a different operating system, you may need to follow alternative installation steps as described in other sections of this document.
 
 ### Run the Installer: 
-Use the provided Python script to automate the setup process. This script will execute a shell script to handle various setup tasks.
+
+To run the installer, open a terminal and navigate to the project directory. Then, run the following command:
+
+This can be run from Powershell on Windows, Terminal on macOS, or any terminal emulator on Linux.
+
+```bash
+sudo ./installer.sh
+```
+
+The installer will perform various tasks, including detecting the SD card, setting up board ports, and copying necessary files.
 
 Note: The installer script will try to guess the TinyML board's serial port. This can be typically be found in the Arduino IDE under Tools > Port. The port will be in the format /dev/cu.usbserial-XXXXXX on macOS and /dev/ttyUSBX on Linux. If yours is different, you will need to manually edit the installer script.
 
-python run_installer.py
+
 
 ### Manual Checks: 
 After running the installer, ensure the following:
